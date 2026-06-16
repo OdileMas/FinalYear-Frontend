@@ -23,6 +23,24 @@ export interface Guard {
   avatar?: string;
 }
 
+export interface GuardLocation {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  status: "on-duty" | "off-duty" | "on-break";
+  lastUpdated?: string;
+}
+
+// Matches the FastAPI backend's GuardLocationResponse schema
+export interface GuardLocationResponse {
+  user_id: string;
+  guard_name: string;
+  latitude: number;
+  longitude: number;
+  recorded_at: string;
+}
+
 export interface Incident {
   id: string;
   type: "motion-detected" | "suspicious-activity" | "theft" | "intrusion" | "fire" | "vandalism";

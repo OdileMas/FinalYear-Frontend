@@ -46,7 +46,7 @@ function DialogContent({
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
-        className={cn("fixed z-50 grid w-full max-w-lg gap-4 rounded-xl border bg-background p-6 shadow-lg animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 duration-200", className)}
+        className={cn("fixed z-50 grid w-full max-w-lg gap-4 rounded-xl border border-gray-200 bg-white text-gray-900 p-6 shadow-lg animate-in data-[state=open]:fade-in-90 data-[state=open]:slide-in-from-bottom-10 duration-200", className)}
         {...props}
       >
         {children}

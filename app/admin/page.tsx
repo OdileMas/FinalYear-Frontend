@@ -1,9 +1,51 @@
 "use client";
 
-import { Camera, AlertCircle, ShieldCheck, MapPin as MapPinIcon, Users, Phone } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { Camera, AlertCircle, ShieldCheck, MapPin as MapPinIcon, Users, Phone, Loader2 } from "lucide-react";
+import { GuardTrackerMap } from "@/components/admin/guard-tracker-map";
+import { useAuthStore } from "@/lib/auth/auth-store";
+import { listGuards, BackendUser } from "@/lib/services/user-service";
+import { getOnDutyGuards, OnDutyGuard } from "@/lib/services/shift-service";
+import { getAuthErrorMessage } from "@/lib/services/auth-service";
 
 export default function AdminDashboardPage() {
+  const adminName = useAuthStore((state) => state.user?.name);
+
+  const [guards, setGuards] = useState<BackendUser[]>([]);
+  const [onDutyGuards, setOnDutyGuards] = useState<OnDutyGuard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isUnmounted = false;
+    (async () => {
+      try {
+        const [guardList, onDuty] = await Promise.all([listGuards(), getOnDutyGuards()]);
+        if (!isUnmounted) {
+          setGuards(guardList);
+          setOnDutyGuards(onDuty);
+        }
+      } catch (err) {
+        if (!isUnmounted) setError(getAuthErrorMessage(err));
+      } finally {
+        if (!isUnmounted) setLoading(false);
+      }
+    })();
+    return () => {
+      isUnmounted = true;
+    };
+  }, []);
+
+  const onDutyNames = new Set(onDutyGuards.map((g) => g.guard_name));
+  const onDutyPercent = guards.length > 0 ? Math.round((onDutyGuards.length / guards.length) * 100) : 0;
+
+  const kpis = [
+    { title: "Total Guards", value: guards.length, change: undefined, icon: Users, color: "bg-blue-500" },
+    { title: "Guards on Duty", value: onDutyGuards.length, change: `${onDutyPercent}% active`, icon: ShieldCheck, color: "bg-emerald-500" },
+    { title: "Active Incidents", value: 2, change: "+1 new", icon: AlertCircle, color: "bg-orange-500" },
+    { title: "Cameras Online", value: "3/4", change: "-1 offline", icon: Camera, color: "bg-violet-500" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Banner */}
@@ -11,10 +53,10 @@ export default function AdminDashboardPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-gray-900">
-              Good morning, Jean <span className="text-emerald-600">👋</span>
+              Good morning{adminName ? `, ${adminName}` : ""} <span className="text-emerald-600">👋</span>
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Here's your security operations overview for today
+              Here&apos;s your security operations overview for today
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -33,12 +75,7 @@ export default function AdminDashboardPage() {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { title: "Total Guards", value: 5, change: "+2 this week", icon: Users, color: "bg-blue-500" },
-            { title: "Guards on Duty", value: 3, change: "60% active", icon: ShieldCheck, color: "bg-emerald-500" },
-            { title: "Active Incidents", value: 2, change: "+1 new", icon: AlertCircle, color: "bg-orange-500" },
-            { title: "Cameras Online", value: "3/4", change: "-1 offline", icon: Camera, color: "bg-violet-500" },
-          ].map((kpi) => {
+          {kpis.map((kpi) => {
             const Icon = kpi.icon;
             return (
               <div key={kpi.title} className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
@@ -65,19 +102,8 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Map & Analytics */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white rounded-2xl border border-gray-200 p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold flex items-center gap-2 text-gray-900">
-                  <MapPinIcon className="h-5 w-5 text-emerald-500" /> Live Tracking & GPS
-                </h2>
-                <div className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-mono">
-                  REAL-TIME GPS ACTIVE
-                </div>
-              </div>
-              <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 flex items-center justify-center mb-4">
-                <p className="text-sm text-gray-400">Map Component</p>
-              </div>
-            </div>
+            {/* Live Guard Tracker Map */}
+            <GuardTrackerMap />
 
             <div className="bg-white rounded-2xl border border-gray-200 p-5">
               <h2 className="text-base font-semibold mb-4 text-gray-900">Incident Analytics</h2>
@@ -108,21 +134,32 @@ export default function AdminDashboardPage() {
             {/* Guard List */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4">
               <h3 className="text-sm font-semibold mb-3 text-gray-900">Guard Status</h3>
-              <div className="space-y-2">
-                {[
-                  { name: "Emmanuel N.", status: "On Duty", color: "green" },
-                  { name: "Jean K.", status: "On Patrol", color: "blue" },
-                  { name: "Patrick M.", status: "Off", color: "gray" },
-                ].map((guard, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`h-2 w-2 rounded-full bg-${guard.color}-500`} />
-                      <span className="text-sm text-gray-700">{guard.name}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">{guard.status}</span>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <div className="flex items-center justify-center p-6">
+                  <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                </div>
+              ) : error ? (
+                <p className="text-xs text-red-600">{error}</p>
+              ) : guards.length === 0 ? (
+                <p className="text-xs text-gray-500">No guards added yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {guards.map((guard) => {
+                    const isOnDuty = onDutyNames.has(guard.name);
+                    const statusLabel = !guard.is_active ? "Deactivated" : isOnDuty ? "On Duty" : "Off Duty";
+                    const dotColor = !guard.is_active ? "bg-gray-400" : isOnDuty ? "bg-green-500" : "bg-gray-300";
+                    return (
+                      <div key={guard.id} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`h-2 w-2 rounded-full ${dotColor}`} />
+                          <span className="text-sm text-gray-700">{guard.name}</span>
+                        </div>
+                        <span className="text-xs text-gray-500">{statusLabel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Emergency Contacts */}

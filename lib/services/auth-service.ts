@@ -18,6 +18,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   phone?: string;
+  organizationId?: string;
 }
 
 export interface AuthResult {
@@ -30,6 +31,7 @@ export interface AuthResult {
 interface LoginResponse {
   access_token: string;
   token_type: string;
+  organization_id?: string;
 }
 
 // Actual FastAPI response for register: token + the created user.
@@ -45,6 +47,7 @@ interface RegisterResponse {
     is_active: boolean;
     created_at: string;
     last_login?: string;
+    organization_id?: string;
   };
 }
 
@@ -72,6 +75,7 @@ export async function loginUser(email: string, password: string): Promise<AuthRe
       name: email,
       email,
       role,
+      organizationId: data.organization_id,
     },
   };
 }
@@ -99,6 +103,7 @@ export async function signupUser(data: {
       email: response.user.email,
       role,
       phone: response.user.phone,
+      organizationId: response.user.organization_id,
     },
   };
 }

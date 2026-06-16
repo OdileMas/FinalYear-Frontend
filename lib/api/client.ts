@@ -17,10 +17,19 @@ export class ApiError extends Error {
 const axiosClient = axios.create({ baseURL: API_URL });
 
 axiosClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+  const { token, user } = useAuthStore.getState();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Auto-propagate the user's organization to any request that didn't
+  // already set it explicitly, so org-scoped endpoints (GET /guards/locations,
+  // /auth/users, /shifts, etc.) get filtered without every call site having
+  // to remember to pass organization_id.
+  if (user?.organizationId && !config.params?.organization_id) {
+    config.params = { ...config.params, organization_id: user.organizationId };
+  }
+
   return config;
 });
 
@@ -62,6 +71,10 @@ export const apiClient = {
   },
   post: async <T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> => {
     const res = await axiosClient.post<T>(path, body, withConfig(options));
+    return res.data;
+  },
+  put: async <T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> => {
+    const res = await axiosClient.put<T>(path, body, withConfig(options));
     return res.data;
   },
   delete: async <T>(path: string, options?: RequestOptions): Promise<T> => {

@@ -9,12 +9,31 @@ import {
   Send,
   Bell,
   Shield,
+  Navigation,
+  WifiOff,
+  Loader2,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useGuardLocation } from "@/lib/hooks/useGuardLocation";
+
+// ---------------------------------------------------------------------------
+// Mini self-map — loaded dynamically so Leaflet (browser-only) doesn't crash SSR
+// ---------------------------------------------------------------------------
+const GuardSelfMap = dynamic(() => import("@/components/guard/guard-self-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 flex items-center justify-center">
+      <Loader2 className="h-5 w-5 text-emerald-500 animate-spin" />
+    </div>
+  ),
+});
 
 export default function GuardDashboardPage() {
+  const { lat, lng, error, isTracking } = useGuardLocation();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Banner */}
@@ -29,10 +48,34 @@ export default function GuardDashboardPage() {
               <p className="text-xs text-gray-600">Emmanuel Nsabimana • Kinyinya Sector</p>
             </div>
           </div>
-          <div className="px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-medium flex items-center gap-1.5 border border-green-200">
-            < Shield className="h-4 w-4" />
-            System Active
-          </div>
+
+          {/* GPS Tracking Status Badge */}
+          {isTracking ? (
+            <div
+              id="gps-active-badge"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium border border-emerald-200"
+            >
+              <Navigation className="h-3.5 w-3.5" />
+              <span>GPS Active</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+          ) : error ? (
+            <div
+              id="gps-error-badge"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-sm font-medium border border-red-200"
+            >
+              <WifiOff className="h-3.5 w-3.5" />
+              GPS Unavailable
+            </div>
+          ) : (
+            <div
+              id="gps-loading-badge"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm font-medium border border-gray-200"
+            >
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Locating…
+            </div>
+          )}
         </div>
       </div>
 
@@ -47,7 +90,10 @@ export default function GuardDashboardPage() {
               { label: "Submit Patrol", color: "bg-blue-500 hover:bg-blue-600" },
               { label: "Send Report", color: "bg-emerald-500 hover:bg-emerald-600" },
             ].map((action, i) => (
-              <button key={i} className={`${action.color} text-white py-2.5 rounded-xl text-sm font-medium transition-colors`}>
+              <button
+                key={i}
+                className={`${action.color} text-white py-2.5 rounded-xl text-sm font-medium transition-colors`}
+              >
                 {action.label}
               </button>
             ))}
@@ -123,7 +169,7 @@ export default function GuardDashboardPage() {
           </div>
         </div>
 
-        {/* Patrol Route + History */}
+        {/* Patrol Route + Live Position */}
         <div className="bg-white rounded-2xl border border-gray-200">
           <div className="p-4 border-b border-gray-100">
             <h2 className="text-sm font-semibold flex items-center gap-2 text-gray-900">
@@ -132,12 +178,42 @@ export default function GuardDashboardPage() {
             <p className="text-xs text-gray-500 mt-0.5">Assigned checkpoints for today</p>
           </div>
           <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Self-position map */}
             <div>
-              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Zone Progress</h3>
-              <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 flex items-center justify-center">
-                <p className="text-sm text-gray-400">Patrol Map</p>
-              </div>
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Navigation className="h-3 w-3" />
+                Your Live Position
+                {isTracking && (
+                  <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-medium">
+                    <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                    Live
+                  </span>
+                )}
+              </h3>
+
+              {/* Render self-map or error/loading states */}
+              {lat !== null && lng !== null ? (
+                <GuardSelfMap lat={lat} lng={lng} />
+              ) : error ? (
+                <div className="h-40 bg-red-50 rounded-xl border border-red-100 flex flex-col items-center justify-center gap-2">
+                  <WifiOff className="h-6 w-6 text-red-400" />
+                  <p className="text-xs text-red-500 text-center max-w-[180px]">{error}</p>
+                </div>
+              ) : (
+                <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 flex items-center justify-center">
+                  <Loader2 className="h-5 w-5 text-emerald-500 animate-spin" />
+                </div>
+              )}
+
+              {/* GPS coordinates display */}
+              {lat !== null && lng !== null && (
+                <p className="text-[10px] text-gray-400 mt-1.5 font-mono text-center">
+                  {lat.toFixed(5)}, {lng.toFixed(5)} · uploading every 30s
+                </p>
+              )}
             </div>
+
+            {/* Recent Activity */}
             <div>
               <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Recent Activity</h3>
               <div className="space-y-2">
@@ -146,7 +222,10 @@ export default function GuardDashboardPage() {
                   { time: "09:45 AM", action: "Patrol route updated", sector: "Kacyiru" },
                   { time: "08:20 AM", action: "Shift started", sector: "Kinyinya" },
                 ].map((activity, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100"
+                  >
                     <div>
                       <p className="text-sm text-gray-900">{activity.action}</p>
                       <p className="text-xs text-gray-500">{activity.sector}</p>
@@ -173,7 +252,12 @@ export default function GuardDashboardPage() {
               { type: "Equipment Update", desc: "Camera firmware v2.4.1 ready", time: "3 hrs ago", unread: false },
               { type: "Incident Report", desc: "INC-003 resolved - file closing notes", time: "5 hrs ago", unread: false },
             ].map((alert, i) => (
-              <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border transition-colors hover:bg-gray-50 ${!alert.unread ? "bg-emerald-50/50" : ""}`}>
+              <div
+                key={i}
+                className={`flex items-center gap-3 p-3 rounded-lg border transition-colors hover:bg-gray-50 ${
+                  !alert.unread ? "bg-emerald-50/50" : ""
+                }`}
+              >
                 <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                   <Send className="h-4 w-4 text-blue-600" />
                 </div>
@@ -183,7 +267,9 @@ export default function GuardDashboardPage() {
                 </div>
                 <span className="text-xs text-gray-400 shrink-0">{alert.time}</span>
                 {!alert.unread && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 text-[10px] font-medium">New</span>
+                  <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 text-[10px] font-medium">
+                    New
+                  </span>
                 )}
               </div>
             ))}

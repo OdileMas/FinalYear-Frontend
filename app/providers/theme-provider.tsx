@@ -1,24 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useThemeStore } from "@/lib/store";
 
 interface ThemeProviderProps {
   children: React.ReactNode;
-  [key: string]: any;
 }
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  const { isDark } = useThemeStore();
-
+export function ThemeProvider({ children }: ThemeProviderProps) {
   React.useEffect(() => {
-    const root = window.document.documentElement;
-    if (isDark) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [isDark]);
+    window.document.documentElement.classList.remove("dark");
+  }, []);
 
   return <>{children}</>;
 }

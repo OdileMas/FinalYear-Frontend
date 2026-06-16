@@ -36,20 +36,20 @@ export default function GuardLayout({ children }: GuardLayoutProps) {
 
   if (!isAuthorized || !user) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="h-screen w-full flex items-center justify-center bg-white">
         <div className="h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+    <div className="h-screen w-full overflow-hidden bg-white transition-colors duration-300">
       <Sidebar navItems={navItems} userRole={user.role} userName={user.name} />
 
       <div
         className={cn(
           "flex flex-col h-screen transition-all duration-300",
-          isOpen ? "lg:pl-64" : "lg:pl-[72px]"
+          isOpen ? "lg:pl-64" : "lg:pl-18"
         )}
       >
         <Navbar userRole={user.role} userName={user.name} onMenuClick={() => {}} />

@@ -7,6 +7,8 @@ import { Clock, MapPin, CheckCircle2, XCircle, BarChart3 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { GuardTrackerMap } from "@/components/admin/guard-tracker-map";
+import { PatrolSchedules } from "@/components/admin/patrol-schedules";
 
 const statusConfig = {
   completed: { badge: "bg-green-100 text-green-700 border-green-200", icon: "text-green-500" },
@@ -20,6 +22,15 @@ export default function PatrolPage() {
 
   return (
     <div className="p-6">
+      <div className="mb-6">
+        <PatrolSchedules />
+      </div>
+
+      {/* Live Guard Map — Phase 2 stub */}
+      <div className="mb-6">
+        <GuardTrackerMap />
+      </div>
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Patrol Logs</h1>
         <p className="text-sm text-gray-600">Monitor patrol schedules and checkpoints</p>

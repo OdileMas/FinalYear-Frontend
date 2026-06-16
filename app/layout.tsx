@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50 transition-colors duration-300`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans bg-white text-gray-900 transition-colors duration-300`}>
         <AppProvider session={null}>
           {children}
           <SonnerProvider position="top-right" richColors theme="system" />

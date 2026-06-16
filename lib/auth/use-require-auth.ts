@@ -12,9 +12,15 @@ export function useRequireAuth(requiredRole: UserRole) {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
+    // Wait for the persisted session to load from localStorage before
+    // deciding the user is logged out — otherwise every refresh briefly
+    // sees token/user as null and redirects to login.
+    if (!hasHydrated) return;
+
     if (!token || !user) {
       router.replace("/auth/login");
       return;
@@ -24,7 +30,7 @@ export function useRequireAuth(requiredRole: UserRole) {
       return;
     }
     setIsAuthorized(true);
-  }, [token, user, requiredRole, router]);
+  }, [token, user, hasHydrated, requiredRole, router]);
 
   return { user, isAuthorized };
 }

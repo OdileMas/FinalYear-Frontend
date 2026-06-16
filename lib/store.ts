@@ -29,7 +29,7 @@ export const useSidebarStore = create<SidebarState>((set) => ({
 }));
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  isDark: true,
+  isDark: false,
   toggle: () => set((state) => ({ isDark: !state.isDark })),
 }));
 

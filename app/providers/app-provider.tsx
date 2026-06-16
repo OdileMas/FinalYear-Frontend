@@ -11,7 +11,7 @@ interface AppProviderProps {
 
 export function AppProvider({ children, session }: AppProviderProps) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+    <ThemeProvider>
       <NextAuthSessionProvider session={session}>
         {children}
       </NextAuthSessionProvider>
