@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { LayoutDashboard, Users, MapPin, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, MapPin } from "lucide-react";
 import { Sidebar } from "@/components/shared/sidebar";
 import { Navbar } from "@/components/shared/navbar";
 import { useSidebarStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/auth/use-require-auth";
 import { cn } from "@/lib/utils";
 
 interface GuardLayoutProps {
@@ -32,30 +32,21 @@ const navItems = [
 
 export default function GuardLayout({ children }: GuardLayoutProps) {
   const { isOpen } = useSidebarStore();
-  const [user, setUser] = React.useState({ role: "GUARD", name: "Loading..." });
+  const { user, isAuthorized } = useRequireAuth("GUARD");
 
-  React.useEffect(() => {
-    const sessionStr = localStorage.getItem("irondo_session");
-    if (sessionStr) {
-      try {
-        const sessionData = JSON.parse(sessionStr);
-        setUser({ 
-          role: sessionData.role || "GUARD", 
-          name: sessionData.name || "User" 
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    } else {
-      setUser({ role: "GUARD", name: "Guest User" });
-    }
-  }, []);
+  if (!isAuthorized || !user) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <Sidebar navItems={navItems} userRole={user.role} userName={user.name} />
-      
-      <div 
+
+      <div
         className={cn(
           "flex flex-col h-screen transition-all duration-300",
           isOpen ? "lg:pl-64" : "lg:pl-[72px]"

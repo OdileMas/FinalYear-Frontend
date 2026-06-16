@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useSidebarStore } from "@/lib/store";
 import { useThemeStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/auth/auth-store";
 
 export interface NavItem {
   icon: React.ElementType;
@@ -155,17 +156,12 @@ export function Sidebar({ navItems, userRole, userName }: SidebarProps) {
                      <MapPin className="h-4 w-4" />
                    )}
                  </Button>
-                 {/* TODO: Connect to backend auth for logout */}
                  <Link href="/auth/login" title="Logout">
                    <Button
                      variant="ghost"
                      size="icon"
                      className="h-7 w-7 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-red-900/20"
-                     onClick={() => {
-                       // TODO: Implement proper session clearing
-                       console.log("Logging out...");
-                       // localStorage.removeItem('session');
-                     }}
+                     onClick={() => useAuthStore.getState().clearSession()}
                    >
                      <LogOut className="h-4 w-4" />
                    </Button>

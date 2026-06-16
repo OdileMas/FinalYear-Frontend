@@ -35,8 +35,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-// TODO: Connect to backend API later - Replace mock with actual API call
-// POST /api/auth/login -> returns JWT token + user data
+import { loginUser, getAuthErrorMessage } from "@/lib/services/auth-service";
+import { useAuthStore } from "@/lib/auth/auth-store";
 
 const loginSchema = z.object({
   role: z.enum(["HEAD_OF_SECURITY", "GUARD"]),
@@ -71,22 +71,17 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      // Fake delay for UX
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const { token, user } = await loginUser(data.email, data.password);
 
-      const sessionData = {
-        email: data.email || "demo@irondo.rw",
-        role: data.role,
-        name: "Demo User",
-        timestamp: Date.now(),
-        token: "mock-jwt-token-" + Date.now(),
-      };
-      localStorage.setItem("irondo_session", JSON.stringify(sessionData));
+      if (user.role !== data.role) {
+        setError(`This account is registered as ${user.role.replace("_", " ")}, not ${data.role.replace("_", " ")}.`);
+        return;
+      }
 
-      // Route directly without validation for demo purposes
-      router.push(data.role === "HEAD_OF_SECURITY" ? "/admin" : "/guard");
+      useAuthStore.getState().setSession(token, user);
+      router.push(user.role === "HEAD_OF_SECURITY" ? "/admin" : "/guard");
     } catch (err) {
-      setError("An error occurred");
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

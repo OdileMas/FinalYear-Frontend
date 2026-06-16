@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Camera, Video, Wifi, WifiOff, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const cameras = [
   { id: 1, name: "Main Gate", sector: "Kinyinya", status: "online", feed: "Front Entrance" },
