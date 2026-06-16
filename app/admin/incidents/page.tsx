@@ -3,7 +3,7 @@
 import { incidents } from "@/lib/data/incidents";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { AlertCircle, AlertTriangle, ShieldAlert, XCircle, CheckCircle2, Eye, MapPin } from "lucide-react";
+import { AlertCircle, AlertTriangle, ShieldAlert, XCircle, CheckCircle2, Eye, MapPin, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -89,7 +89,7 @@ export default function IncidentsPage() {
                         <span>•</span>
                         <span>{incident.sector}</span>
                         <span>•</span>
-                        <span>{incident.time}</span>
+                        <span>{new Date(incident.reportedAt).toLocaleTimeString()}</span>
                       </div>
                     </div>
                   </div>

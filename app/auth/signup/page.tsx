@@ -28,7 +28,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-// TODO: Connect to backend API later - Replace mock with actual API call
+import { signupUser, getAuthErrorMessage } from "@/lib/services/auth-service";
+import { useAuthStore } from "@/lib/auth/auth-store";
+
 const signupSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   role: z.enum(["HEAD_OF_SECURITY", "GUARD"]),
@@ -58,22 +60,17 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      // Fake delay for UX
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const sessionData = {
+      const { token, user } = await signupUser({
+        fullName: data.fullName,
         email: data.email,
+        password: data.password,
         role: data.role,
-        name: data.fullName,
-        timestamp: Date.now(),
-        token: "mock-jwt-token-" + Date.now(),
-      };
-      localStorage.setItem("irondo_session", JSON.stringify(sessionData));
+      });
 
-      // Route directly without validation for demo purposes
-      router.push(data.role === "HEAD_OF_SECURITY" ? "/admin" : "/guard");
+      useAuthStore.getState().setSession(token, user);
+      router.push(user.role === "HEAD_OF_SECURITY" ? "/admin" : "/guard");
     } catch (err) {
-      setError("An error occurred");
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

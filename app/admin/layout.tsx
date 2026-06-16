@@ -5,6 +5,7 @@ import { LayoutDashboard, Users, FileWarning, Calendar, Camera, Settings } from 
 import { Sidebar } from "@/components/shared/sidebar";
 import { Navbar } from "@/components/shared/navbar";
 import { useSidebarStore } from "@/lib/store";
+import { useRequireAuth } from "@/lib/auth/use-require-auth";
 import { cn } from "@/lib/utils";
 
 export interface NavItem {
@@ -29,30 +30,21 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { isOpen } = useSidebarStore();
-  const [user, setUser] = React.useState({ role: "HEAD_OF_SECURITY", name: "Loading..." });
+  const { user, isAuthorized } = useRequireAuth("HEAD_OF_SECURITY");
 
-  React.useEffect(() => {
-    const sessionStr = localStorage.getItem("irondo_session");
-    if (sessionStr) {
-      try {
-        const sessionData = JSON.parse(sessionStr);
-        setUser({ 
-          role: sessionData.role || "HEAD_OF_SECURITY", 
-          name: sessionData.name || "User" 
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    } else {
-      setUser({ role: "HEAD_OF_SECURITY", name: "Guest User" });
-    }
-  }, []);
+  if (!isAuthorized || !user) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       <Sidebar navItems={adminNavItems} userRole={user.role} userName={user.name} />
-      
-      <div 
+
+      <div
         className={cn(
           "flex flex-col h-screen transition-all duration-300",
           isOpen ? "lg:pl-64" : "lg:pl-[72px]"
