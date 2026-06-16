@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/lib/auth/auth-store";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+console.log("[apiClient] API_URL:", API_URL);
+
 
 export class ApiError extends Error {
   status: number;
