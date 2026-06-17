@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/lib/auth/auth-store";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://tite2-fyp-be.hf.space";
+const API_URL = "https://satiable-celibate-reprocess.ngrok-free.dev/";
 console.log("[apiClient] API_URL:", API_URL);
 
 
